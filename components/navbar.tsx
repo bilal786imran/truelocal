@@ -1,31 +1,42 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
-import { Home, Grid3X3, UserPlus, MessageCircle, Calendar, Menu, X, LogOut } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
-import { AuthModal } from "@/components/auth/login-modal"
-import { supabase } from "@/lib/supabase"
+} from "@/components/ui/dropdown-menu";
+import {
+  Home,
+  Grid3X3,
+  UserPlus,
+  MessageCircle,
+  Calendar,
+  Menu,
+  X,
+  LogOut,
+} from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { AuthModal } from "@/components/auth/login-modal";
+import { supabase } from "@/lib/supabase";
+import { AddListingModal } from "./add-listing-modal";
 
 export function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
-  const [unreadCount, setUnreadCount] = useState(0)
-  const { user, profile, signOut, isAuthenticated } = useAuth()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const { user, profile, signOut, isAuthenticated } = useAuth();
+  const [isAddListingOpen, setIsAddListingOpen] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && user && profile) {
-      fetchUnreadCount()
+      fetchUnreadCount();
 
       // Subscribe to conversation changes
       const channel = supabase
@@ -36,39 +47,42 @@ export function Navbar() {
             event: "*",
             schema: "public",
             table: "conversations",
-            filter: profile.user_type === "customer" ? `customer_id=eq.${user.id}` : `provider_id=eq.${user.id}`,
+            filter:
+              profile.user_type === "customer"
+                ? `customer_id=eq.${user.id}`
+                : `provider_id=eq.${user.id}`,
           },
           () => {
-            fetchUnreadCount()
-          },
+            fetchUnreadCount();
+          }
         )
-        .subscribe()
+        .subscribe();
 
       return () => {
-        supabase.removeChannel(channel)
-      }
+        supabase.removeChannel(channel);
+      };
     }
-  }, [isAuthenticated, user, profile])
+  }, [isAuthenticated, user, profile]);
 
   const fetchUnreadCount = async () => {
-    if (!user || !profile) return
+    if (!user || !profile) return;
 
     try {
       const { data, error } = await supabase.rpc("get_total_unread_count", {
         user_id: user.id,
         user_type: profile.user_type,
-      })
+      });
 
       if (error) {
-        console.error("Error fetching unread count:", error)
-        return
+        console.error("Error fetching unread count:", error);
+        return;
       }
 
-      setUnreadCount(data || 0)
+      setUnreadCount(data || 0);
     } catch (error) {
-      console.error("Error fetching unread count:", error)
+      console.error("Error fetching unread count:", error);
     }
-  }
+  };
 
   return (
     <>
@@ -80,7 +94,9 @@ export function Navbar() {
               <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg">T</span>
               </div>
-              <span className="text-xl font-bold text-brand-dark">TrueLocal</span>
+              <span className="text-xl font-bold text-brand-dark">
+                TrueLocal
+              </span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -99,13 +115,13 @@ export function Navbar() {
                 <Grid3X3 size={18} />
                 <span>Services</span>
               </Link>
-              <Link
-                href="/become-provider"
+              <a
+                onClick={() => setIsAddListingOpen(true)}
                 className="flex items-center space-x-1 text-gray-700 hover:text-brand-primary transition-colors duration-200"
               >
                 <UserPlus size={18} />
                 <span>Become a Provider</span>
-              </Link>
+              </a>
             </div>
 
             {/* Right Side */}
@@ -114,7 +130,11 @@ export function Navbar() {
                 <>
                   {/* Chat Icon */}
                   <Link href="/chat">
-                    <Button variant="ghost" size="icon" className="relative hover:bg-brand-light">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="relative hover:bg-brand-light"
+                    >
                       <MessageCircle size={20} className="text-gray-600" />
                       {unreadCount > 0 && (
                         <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 bg-brand-primary text-white text-xs">
@@ -126,7 +146,11 @@ export function Navbar() {
 
                   {/* Appointments Icon */}
                   <Link href="/account?tab=appointments">
-                    <Button variant="ghost" size="icon" className="relative hover:bg-brand-light">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="relative hover:bg-brand-light"
+                    >
                       <Calendar size={20} className="text-gray-600" />
                       <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 bg-brand-primary text-white text-xs">
                         2
@@ -137,26 +161,41 @@ export function Navbar() {
                   {/* Account Dropdown */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="flex items-center space-x-2 hover:bg-brand-light">
+                      <Button
+                        variant="ghost"
+                        className="flex items-center space-x-2 hover:bg-brand-light"
+                      >
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={profile?.avatar_url || "/placeholder.svg"} />
-                          <AvatarFallback>{profile?.full_name?.[0] || "U"}</AvatarFallback>
+                          <AvatarImage
+                            src={profile?.avatar_url || "/placeholder.svg"}
+                          />
+                          <AvatarFallback>
+                            {profile?.full_name?.[0] || "U"}
+                          </AvatarFallback>
                         </Avatar>
-                        <span className="hidden sm:block text-sm font-medium">{profile?.full_name}</span>
+                        <span className="hidden sm:block text-sm font-medium">
+                          {profile?.full_name}
+                        </span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <div className="px-3 py-2 border-b">
-                        <p className="text-sm font-medium">{profile?.full_name}</p>
+                        <p className="text-sm font-medium">
+                          {profile?.full_name}
+                        </p>
                         <p className="text-xs text-gray-500 capitalize">
-                          {profile?.user_type === "provider" ? "Provider Mode" : "Customer Mode"}
+                          {profile?.user_type === "provider"
+                            ? "Provider Mode"
+                            : "Customer Mode"}
                         </p>
                       </div>
                       <DropdownMenuItem asChild>
                         <Link href="/account">Dashboard</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/account?tab=profile">Profile & Settings</Link>
+                        <Link href="/account?tab=profile">
+                          Profile & Settings
+                        </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link href="/chat">
@@ -171,7 +210,9 @@ export function Navbar() {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/account?tab=appointments">Appointments</Link>
+                        <Link href="/account?tab=appointments">
+                          Appointments
+                        </Link>
                       </DropdownMenuItem>
                       {profile?.user_type === "provider" && (
                         <DropdownMenuItem asChild>
@@ -179,7 +220,10 @@ export function Navbar() {
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={signOut} className="text-red-600">
+                      <DropdownMenuItem
+                        onClick={signOut}
+                        className="text-red-600"
+                      >
                         <LogOut size={16} className="mr-2" />
                         Sign Out
                       </DropdownMenuItem>
@@ -227,14 +271,16 @@ export function Navbar() {
                   <Grid3X3 size={18} />
                   <span>Services</span>
                 </Link>
-                <Link
-                  href="/become-provider"
+                <a
                   className="flex items-center space-x-2 text-gray-700 hover:text-brand-primary transition-colors duration-200"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => {
+                    setIsAddListingOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
                 >
                   <UserPlus size={18} />
                   <span>Become a Provider</span>
-                </Link>
+                </a>
                 {isAuthenticated && (
                   <Link
                     href="/chat"
@@ -255,8 +301,8 @@ export function Navbar() {
                 {!isAuthenticated && (
                   <Button
                     onClick={() => {
-                      setIsAuthModalOpen(true)
-                      setIsMobileMenuOpen(false)
+                      setIsAuthModalOpen(true);
+                      setIsMobileMenuOpen(false);
                     }}
                     className="bg-brand-primary hover:bg-brand-secondary text-white w-full"
                   >
@@ -269,7 +315,17 @@ export function Navbar() {
         </div>
       </nav>
 
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+      <AddListingModal
+        isOpen={isAddListingOpen}
+        onClose={() => setIsAddListingOpen(false)}
+        onSuccess={() => {
+          console.log("Listing created successfully!");
+        }}
+      />
     </>
-  )
+  );
 }
