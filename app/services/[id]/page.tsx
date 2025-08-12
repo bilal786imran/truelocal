@@ -473,10 +473,6 @@ export default function ServiceDetailsPage() {
                     <MessageCircle className="w-4 h-4 mr-2" />
                     Send Message
                   </Button>
-                  <Button variant="outline" className="w-full bg-transparent">
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call Now
-                  </Button>
                 </div>
                 {!isAuthenticated && (
                   <p className="text-xs text-gray-500 mt-3 text-center">
@@ -518,20 +514,6 @@ export default function ServiceDetailsPage() {
             </Card>
 
             {/* Location */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-bold text-lg mb-4">Service Area</h3>
-                <div className="bg-gray-100 h-48 rounded-lg flex items-center justify-center">
-                  <div className="text-center text-gray-500">
-                    <MapPin className="w-8 h-8 mx-auto mb-2" />
-                    <p>Map showing service area</p>
-                    <p className="text-sm">
-                      {service.location_city}, {service.location_state}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
